@@ -125,6 +125,18 @@ NMI:
     LDA #$02
     STA $4014  ; set the high byte (02) of the RAM address, start the transfer
 
+
+LatchController:
+    ; latch buttons for both controllers
+    LDA #$01
+    STA $4016
+    LDA #$00
+    STA $4016
+
+
+; TODO READ BUTTONS 
+
+
     RTI
 
 PaletteData:
