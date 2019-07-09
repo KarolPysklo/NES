@@ -134,7 +134,28 @@ LatchController:
     STA $4016
 
 
-; TODO READ BUTTONS 
+ReadA:
+    LDA $4016       ; player one (4016) button A
+    AND #%00000001  ; first bit
+    BEQ ReadADone   ; branch on result zero (button not pressed)
+                    ; if button is pressed continue
+
+    LDA $0203       ; load horizontal position of the first sprite
+    CLC             ; CLear Carry flag in status register - (usually this should be done before ADC)
+    ADC #$01        ; A += 1
+    STA $0203       ; save horizontal position of the first sprite
+ReadADone:
+
+ReadB:
+    LDA $4016
+    AND #%00000001
+    BEQ ReadBDone
+
+    LDA $0203
+    SEC             ; SEt Carry flag in status register (usually this should be done before SBC)
+    SBC #$01        ; A -= 1
+    STA $0203
+ReadBDone:
 
 
     RTI
