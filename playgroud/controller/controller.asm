@@ -144,7 +144,24 @@ ReadA:
     CLC             ; CLear Carry flag in status register - (usually this should be done before ADC)
     ADC #$01        ; A += 1
     STA $0203       ; save horizontal position of the first sprite
+
+    LDA $0207
+    CLC
+    ADC #$01
+    STA $0207
+
+    LDA $020B
+    CLC
+    ADC #$01
+    STA $020B
+
+    LDA $020F
+    CLC
+    ADC #$01
+    STA $020F
+
 ReadADone:
+
 
 ReadB:
     LDA $4016
@@ -155,6 +172,22 @@ ReadB:
     SEC             ; SEt Carry flag in status register (usually this should be done before SBC)
     SBC #$01        ; A -= 1
     STA $0203
+
+    LDA $0207
+    SEC
+    SBC #$01
+    STA $0207
+
+    LDA $020B
+    SEC
+    SBC #$01
+    STA $020B
+
+    LDA $020F
+    SEC
+    SBC #$01
+    STA $020F
+
 ReadBDone:
 
 
