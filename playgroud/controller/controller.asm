@@ -39,10 +39,15 @@ ReadController:
     LDX #$08
 ReadControllerLoop:
     LDA $4016
-    LSR ADC
-    ROL button
+    LSR A
+    ROL buttons
     DEX
     BNE ReadControllerLoop
+    RTS
+
+VBLANKWAIT:
+    BIT $2002
+    BPL VBLANKWAIT
     RTS
 
 RESET:
@@ -61,9 +66,7 @@ RESET:
     STX $2001    ; disable rendering
     STX $4010    ; disable DMC IRQs
 
-VBLANKWAIT1:
-    BIT $2002
-    BPL VBLANKWAIT1
+    JSR VBLANKWAIT
 
 CLEARMEM:
     STA $0000, X ; $0000 => $00FF
@@ -79,9 +82,7 @@ CLEARMEM:
     INX
     BNE CLEARMEM
 
-VBLANKWAIT2:
-    BIT $2002
-    BPL VBLANKWAIT2
+    JSR VBLANKWAIT
 
     LDA #%00100000
     STA $2001
