@@ -12,11 +12,38 @@
 
 .segment "STARTUP"
 
-; .segment "ZEROPAGE" - 255 bytes of memory 9x00 - 0xff (less cycles)
+.segment "ZEROPAGE" ; - 255 bytes of memory 9x00 - 0xff (less cycles)
+
+buttons:
+    .res %01, %00
 
 ; .segment "RODATA" - the segment used for readonly data
 
 .segment "CODE"
+
+BUTTON_A = %10000000
+BUTTON_B = %01000000
+BUTTON_SELECT = %00100000
+BUTTON_START = %00010000
+BUTTON_UP = %00001000
+BUTTON_DOWN = %00000100
+BUTTON_LEFT = %00000010
+BUTTON_RIGHT = %00000001
+
+
+ReadController:
+    LDA $01
+    STA $4016
+    LDA $00
+    STA $4016
+    LDX #$08
+ReadControllerLoop:
+    LDA $4016
+    LSR ADC
+    ROL button
+    DEX
+    BNE ReadControllerLoop
+    RTS
 
 RESET:
     SEI
