@@ -8,46 +8,47 @@
 .byte $00
 .byte $00
 .byte $00
-.byte $00, $00, $00, $00, $00 ; filler byte.byte
+.byte $00, $00, $00, $00, $00 ; filler byte
 
 .segment "STARTUP"
 
 .segment "ZEROPAGE" ; - 255 bytes of memory 9x00 - 0xff (less cycles)
 
 buttons:
-    .res %01, %00
+    .res %01, $00
 
 ; .segment "RODATA" - the segment used for readonly data
 
 .segment "CODE"
 
-BUTTON_A = %10000000
-BUTTON_B = %01000000
-BUTTON_SELECT = %00100000
-BUTTON_START = %00010000
-BUTTON_UP = %00001000
-BUTTON_DOWN = %00000100
-BUTTON_LEFT = %00000010
-BUTTON_RIGHT = %00000001
+BUTTON_A      = 1 << 7
+BUTTON_B      = 1 << 6
+BUTTON_SELECT = 1 << 5
+BUTTON_START  = 1 << 4
+BUTTON_UP     = 1 << 3
+BUTTON_DOWN   = 1 << 2
+BUTTON_LEFT   = 1 << 1
+BUTTON_RIGHT  = 1 << 0
 
-
-ReadController:
-    LDA $01
-    STA $4016
-    LDA $00
-    STA $4016
-    LDX #$08
-ReadControllerLoop:
-    LDA $4016
-    LSR A
-    ROL buttons
-    DEX
-    BNE ReadControllerLoop
-    RTS
 
 VBLANKWAIT:
     BIT $2002
     BPL VBLANKWAIT
+    RTS
+
+ReadController:
+    ; latch buttons for both controllers
+    LDA #$01
+    STA $4016
+    LDA #$00
+    STA $4016
+    LDX #$08
+ReadControllerLoop:
+    LDA $4016
+    LSR A            ; bit0 -> Carry
+    ROL buttons     ; bit0 <- Carry
+    DEX
+    BNE ReadControllerLoop
     RTS
 
 RESET:
@@ -84,6 +85,7 @@ CLEARMEM:
 
     JSR VBLANKWAIT
 
+
     LDA #%00100000
     STA $2001
 
@@ -102,7 +104,6 @@ LoadPalettes:
     LDX #$00
 LoadPalettesLoop:
     LDA PaletteData, x
-
     STA $2007   ; VRAM I/O Register - ; write to PPU
     INX
     CPX #$20
@@ -154,17 +155,12 @@ NMI:
     STA $4014  ; set the high byte (02) of the RAM address, start the transfer
 
 
-LatchController:
-    ; latch buttons for both controllers
-    LDA #$01
-    STA $4016
-    LDA #$00
-    STA $4016
-
-
-ReadA:
-    LDA $4016       ; player one (4016) button A
-    AND #%00000001  ; first bit
+    JSR ReadController
+    
+    LDA buttons
+    AND #BUTTON_A
+    ; LDA $4016       ; player one (4016) button A
+    ; AND #%00000001  ; first bit
     BEQ ReadADone   ; branch on result zero (button not pressed)
                     ; if button is pressed continue
 
@@ -187,13 +183,11 @@ ReadA:
     CLC
     ADC #$01
     STA $020F
-
 ReadADone:
 
-
 ReadB:
-    LDA $4016
-    AND #%00000001
+    LDA buttons
+    AND #BUTTON_B
     BEQ ReadBDone
 
     LDA $0203
@@ -215,15 +209,15 @@ ReadB:
     SEC
     SBC #$01
     STA $020F
-
 ReadBDone:
 
 
     RTI
 
 PaletteData:
-    .byte $22,$29,$1A,$0F,$22,$36,$17,$0f,$22,$30,$21,$0f,$22,$27,$17,$0F  ;background palette data
-    .byte $22,$16,$27,$18,$22,$1A,$30,$27,$22,$16,$30,$27,$22,$0F,$36,$17  ;sprite palette data
+    .byte $22,$16,$27,$18,$22,$16,$27,$18,$22,$16,$27,$18,$22,$16,$27,$18
+    .byte $22,$16,$27,$18,$22,$36,$17,$0f,$22,$30,$21,$0f,$22,$27,$17,$0F  ;background palette data
+  ;sprite palette data
 ;    .byte $0F,$31,$32,$33,$0F,$35,$36,$37,$0F,$39,$3A,$3B,$0F,$3D,$3E,$0F  ;background palette data
 ;    .byte $0F,$1C,$15,$14,$0F,$02,$38,$3C,$0F,$1C,$15,$14,$0F,$02,$38,$3C  ;sprite palette data
 
